@@ -12,7 +12,7 @@ class GlobalModel {
   final playArray2 = List<List<colorsOfChips>>.generate(numberOfCells,
       (index) => List<colorsOfChips>.filled(numberOfCells, colorsOfChips.none));
 
-  //TODO check the possibility to use ObjectKey later
+  //TODO check the possibility to use ObjectKey later sdfsdfs
   // final keysArray = List<List<ObjectKey>>.generate(
   //     numberOfCells,
   //     (index1) => List<ObjectKey>.generate(
