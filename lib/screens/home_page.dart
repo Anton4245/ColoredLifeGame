@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:life_colored/consts.dart';
 import 'package:life_colored/models/global_model.dart';
@@ -15,6 +14,7 @@ class MyHomePage extends StatefulWidget {
 class MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   Widget? gameTable;
+  colorsOfChips choosedColor = colorsOfChips.none;
 
   void _gameStart() {
     GlobalModel.instance.gameStart(widget.key);
@@ -41,32 +41,87 @@ class MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var standartConstraints = BoxConstraints(minWidth: 50, maxWidth: 70);
     // ignore: prefer_const_constructors
-    gameTable = GameTable();
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-              onPressed: changeKoef,
-              icon: Icon(GlobalModel.instance.koef == 1
-                  ? Icons.fit_screen
-                  : Icons.backspace)),
-          IconButton(
-              onPressed: _gameStart,
-              icon: GlobalModel.instance.gameStatus == GameStatus.gameStarted
-                  ? const Icon(Icons.play_arrow)
-                  : const Icon(Icons.start)),
-          IconButton(
-              onPressed: _gameCleanField,
-              icon: const Icon(Icons.cleaning_services))
+      // appBar: AppBar(
+      //   title: Text(widget.title),
+      //   actions: [
+      //     IconButton(
+      //         onPressed: changeKoef,
+      //         icon: Icon(GlobalModel.instance.koef == 1
+      //             ? Icons.fit_screen
+      //             : Icons.backspace)),
+      //     IconButton(
+      //         onPressed: _gameStart,
+      //         icon: GlobalModel.instance.gameStatus == GameStatus.gameStarted
+      //             ? const Icon(Icons.play_arrow)
+      //             : const Icon(Icons.start)),
+      //     IconButton(
+      //         onPressed: _gameCleanField,
+      //         icon: const Icon(Icons.cleaning_services))
+      //   ],
+      // ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            height: 40,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              ...colorsOfChips.values
+                  .where((color) => color != colorsOfChips.none)
+                  .map((e) => RawMaterialButton(
+                        constraints: standartConstraints,
+                        onPressed: () {},
+                        child: Icon(
+                          Icons.circle,
+                          color: colorConverter[e],
+                        ),
+                        shape: CircleBorder(),
+                      )),
+              IconButton(
+                  color: Theme.of(context).colorScheme.primary,
+                  constraints: standartConstraints,
+                  padding: EdgeInsets.zero,
+                  onPressed: changeKoef,
+                  icon: Icon(GlobalModel.instance.koef == 1
+                      ? Icons.fit_screen
+                      : Icons.backspace)),
+              IconButton(
+                  color: Theme.of(context).colorScheme.primary,
+                  constraints: standartConstraints,
+                  onPressed: _gameStart,
+                  icon:
+                      GlobalModel.instance.gameStatus == GameStatus.gameStarted
+                          ? const Icon(Icons.play_arrow)
+                          : const Icon(Icons.start)),
+              IconButton(
+                  color: Theme.of(context).colorScheme.primary,
+                  constraints: standartConstraints,
+                  onPressed: _gameCleanField,
+                  icon: const Icon(Icons.cleaning_services))
+            ],
+          ),
+          //Expanded(child: GameTable()),
+          adaptiveHeight(GameTable()),
         ],
-      ),
-      body: Center(
-        child: gameTable,
       ),
       floatingActionButton: FABWithCondition(),
     );
+  }
+
+  Widget adaptiveHeight(Widget w) {
+    var media = MediaQuery.of(context);
+    if ((media.size.height - media.size.width >= 100) &&
+        GlobalModel.instance.koef < 1.05) {
+      return w;
+    } else {
+      return Expanded(child: w);
+    }
   }
 
   FloatingActionButton FABWithCondition() {
