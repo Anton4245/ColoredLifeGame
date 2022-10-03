@@ -1,5 +1,4 @@
-import 'dart:ffi';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:life_colored/consts.dart';
 import 'package:life_colored/models/global_model.dart';
@@ -22,19 +21,14 @@ class MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  void _gameRestart() {
-    GlobalModel.instance.gameRestart(widget.key);
-    setState(() {});
-  }
-
-  void _gameStop() {
+  void _gamePause() {
     GlobalModel.instance.gameStop();
     setState(() {});
   }
 
   void _gameCleanField() {
     setState(() {
-      GlobalModel.instance.cleanArrays();
+      GlobalModel.instance.gameCleanField();
     });
   }
 
@@ -56,10 +50,13 @@ class MyHomePageState extends State<MyHomePage> {
           IconButton(
               onPressed: changeKoef,
               icon: Icon(GlobalModel.instance.koef == 1
-                  ? Icons.arrow_upward
-                  : Icons.arrow_downward)),
+                  ? Icons.fit_screen
+                  : Icons.backspace)),
           IconButton(
-              onPressed: _gameRestart, icon: const Icon(Icons.play_arrow)),
+              onPressed: _gameStart,
+              icon: GlobalModel.instance.gameStatus == GameStatus.gameStarted
+                  ? const Icon(Icons.play_arrow)
+                  : const Icon(Icons.start)),
           IconButton(
               onPressed: _gameCleanField,
               icon: const Icon(Icons.cleaning_services))
@@ -68,17 +65,46 @@ class MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: gameTable,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: GlobalModel.instance.gamePaused
-            ? (GlobalModel.instance.gameFinished ? _gameCleanField : _gameStart)
-            : _gameStop,
-        tooltip: GlobalModel.instance.gamePaused ? 'Start' : 'Stop',
-        child: GlobalModel.instance.gamePaused
-            ? (GlobalModel.instance.gameFinished
-                ? Icon(Icons.cleaning_services)
-                : Icon(Icons.play_arrow))
-            : Icon(Icons.stop),
-      ),
+      floatingActionButton: FABWithCondition(),
     );
+  }
+
+  FloatingActionButton FABWithCondition() {
+    if (!GlobalModel.instance.gamePaused) {
+      return FloatingActionButton(
+        onPressed: _gamePause,
+        tooltip: 'Pause',
+        child: const Icon(Icons.stop),
+      );
+    }
+
+    //game not paused initialState -> gameStarted - gameFinished
+
+    switch (GlobalModel.instance.gameStatus) {
+      case GameStatus.gameFinished:
+        return FloatingActionButton(
+            onPressed: _gameCleanField,
+            tooltip: 'Clean',
+            child: const Icon(Icons.cleaning_services));
+
+      case GameStatus.initialState:
+        return FloatingActionButton(
+          onPressed: _gameStart,
+          tooltip: 'Start',
+          child: const Icon(Icons.start),
+        );
+
+      case GameStatus.gameStarted:
+        return FloatingActionButton(
+          onPressed: _gameStart,
+          tooltip: 'Continue',
+          child: const Icon(Icons.play_arrow),
+        );
+
+      default:
+        return FloatingActionButton(
+          onPressed: () {},
+        );
+    }
   }
 }

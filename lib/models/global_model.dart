@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:life_colored/consts.dart';
 
+enum GameStatus { initialState, gameStarted, gameFinished }
+
 class GlobalModel {
   //Singleton constractor
   GlobalModel._privateConstructor();
@@ -24,21 +26,13 @@ class GlobalModel {
           numberOfCells, (index2) => GlobalKey<State>()));
 
   Timer? timer;
-  bool gameStarted = false;
+  GameStatus gameStatus = GameStatus.initialState;
   bool gamePaused = true;
-  bool gameFinished = false;
   Key? mainPageKey;
   double koef = 1.0;
 
   void cancelTimer() {
     if (timer != null && (timer?.isActive ?? false)) timer?.cancel();
-  }
-
-  void gameRestart(Key? key) {
-    gameFinished = false;
-    gameStarted = false;
-    gamePaused = false;
-    gameStart(key);
   }
 
   void cleanArrays() {
@@ -52,17 +46,10 @@ class GlobalModel {
 
   void gameStart(Key? key) {
     mainPageKey = key;
-    gamePaused = false;
-    if (!gameStarted) {
-      //initInitialSet();
-      gameStarted = true;
-    }
-    gameResume();
-  }
-
-  void gameResume() {
+    gameStatus = GameStatus.gameStarted;
     cancelTimer();
-    timer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
+    gamePaused = false;
+    timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
       step();
     });
   }
@@ -71,12 +58,23 @@ class GlobalModel {
     gamePaused = true;
     //timer
     cancelTimer();
-    if (gameFinished) {
+  }
+
+  void finishGame() {
+    gameStop();
+    gameStatus = GameStatus.gameFinished;
+    try {
       (mainPageKey as GlobalKey<State>?)
           ?.currentState
           ?.setState(() {}); //it is not very bewtitiful, but for opimization
-
+    } catch (e) {
+      //do nothing
     }
+  }
+
+  void gameCleanField() {
+    cleanArrays();
+    gameStatus = GameStatus.initialState;
   }
 
   void initInitialSet() {
@@ -110,8 +108,7 @@ class GlobalModel {
     }
     bool arraysAreEqual = copyArray2ToArray1();
     if (arraysAreEqual) {
-      gameFinished = true;
-      gameStop();
+      finishGame();
     }
   }
 
