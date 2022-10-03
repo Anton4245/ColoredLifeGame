@@ -28,6 +28,7 @@ class GlobalModel {
   bool gamePaused = true;
   bool gameFinished = false;
   Key? mainPageKey;
+  double koef = 1.0;
 
   void cancelTimer() {
     if (timer != null && (timer?.isActive ?? false)) timer?.cancel();
@@ -35,7 +36,6 @@ class GlobalModel {
 
   void gameRestart(Key? key) {
     gameFinished = false;
-    cleanArrays();
     gameStarted = false;
     gamePaused = false;
     gameStart(key);
@@ -54,7 +54,7 @@ class GlobalModel {
     mainPageKey = key;
     gamePaused = false;
     if (!gameStarted) {
-      initInitialSet();
+      //initInitialSet();
       gameStarted = true;
     }
     gameResume();
@@ -101,7 +101,7 @@ class GlobalModel {
             playArray2[i][j] = colorsOfChips.red;
           });
         } else if (playArray1[i][j] != colorsOfChips.none &&
-            (_numberOfNeighbors < 2 || _numberOfNeighbors > 3)) {
+            (_numberOfNeighbors != 2 && _numberOfNeighbors != 3)) {
           GlobalModel.instance.keysArray[i][j].currentState!.setState(() {
             playArray2[i][j] = colorsOfChips.none;
           });
@@ -145,5 +145,14 @@ class GlobalModel {
     } else {
       return 0;
     }
+  }
+
+  void changeChipColor(index1, index2) {
+    GlobalModel.instance.playArray2[index1][index2] =
+        GlobalModel.instance.playArray2[index1][index2] == colorsOfChips.none
+            ? colorsOfChips.red
+            : colorsOfChips.none;
+    GlobalModel.instance.playArray1[index1][index2] =
+        GlobalModel.instance.playArray1[index1][index2];
   }
 }

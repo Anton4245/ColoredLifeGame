@@ -32,6 +32,19 @@ class MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
+  void _gameCleanField() {
+    setState(() {
+      GlobalModel.instance.cleanArrays();
+    });
+  }
+
+  void changeKoef() {
+    setState(() {
+      GlobalModel.instance.koef =
+          GlobalModel.instance.koef == 1 ? increaseSizeKoef : 1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // ignore: prefer_const_constructors
@@ -39,19 +52,31 @@ class MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+              onPressed: changeKoef,
+              icon: Icon(GlobalModel.instance.koef == 1
+                  ? Icons.arrow_upward
+                  : Icons.arrow_downward)),
+          IconButton(
+              onPressed: _gameRestart, icon: const Icon(Icons.play_arrow)),
+          IconButton(
+              onPressed: _gameCleanField,
+              icon: const Icon(Icons.cleaning_services))
+        ],
       ),
       body: Center(
         child: gameTable,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: GlobalModel.instance.gamePaused
-            ? (GlobalModel.instance.gameFinished ? _gameRestart : _gameStart)
+            ? (GlobalModel.instance.gameFinished ? _gameCleanField : _gameStart)
             : _gameStop,
         tooltip: GlobalModel.instance.gamePaused ? 'Start' : 'Stop',
         child: GlobalModel.instance.gamePaused
             ? (GlobalModel.instance.gameFinished
-                ? Icon(Icons.refresh)
-                : Icon(Icons.start))
+                ? Icon(Icons.cleaning_services)
+                : Icon(Icons.play_arrow))
             : Icon(Icons.stop),
       ),
     );

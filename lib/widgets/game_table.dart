@@ -20,26 +20,32 @@ class _GameTableState extends State<GameTable> {
   @override
   Widget build(BuildContext context) {
     initScreenSize(context);
-    return Table(
-        border: TableBorder(
-            top: borderSide,
-            bottom: borderSide,
-            right: borderSide,
-            left: borderSide,
-            horizontalInside: borderSide,
-            verticalInside: borderSide),
-        defaultColumnWidth: FixedColumnWidth(blockSize),
-        children: Iterable<int>.generate(numberOfCells)
-            .map((e) => TableRow(
-                  key: ObjectKey(e),
-                  children: Iterable<int>.generate(numberOfCells)
-                      .map((ee) => Cell(
-                          key: GlobalModel.instance.keysArray[e][ee],
-                          index1: e,
-                          index2: ee))
-                      .toList(),
-                ))
-            .toList());
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Table(
+            border: TableBorder(
+                top: borderSide,
+                bottom: borderSide,
+                right: borderSide,
+                left: borderSide,
+                horizontalInside: borderSide,
+                verticalInside: borderSide),
+            defaultColumnWidth: FixedColumnWidth(blockSize),
+            children: Iterable<int>.generate(numberOfCells)
+                .map((e) => TableRow(
+                      key: ObjectKey(e),
+                      children: Iterable<int>.generate(numberOfCells)
+                          .map((ee) => Cell(
+                              key: GlobalModel.instance.keysArray[e][ee],
+                              index1: e,
+                              index2: ee))
+                          .toList(),
+                    ))
+                .toList()),
+      ),
+    );
   }
 
   void initScreenSize(BuildContext context) {
@@ -48,16 +54,18 @@ class _GameTableState extends State<GameTable> {
     double shortestSide = MediaQuery.of(context).size.shortestSide;
     double myMargin = 0;
 
+    blockSize = (shortestSide * GlobalModel.instance.koef / numberOfCells)
+        .truncateToDouble();
     if (width < height) {
-      blockSize = (shortestSide / numberOfCells).truncateToDouble();
       myMargin = 16;
     } else {
-      blockSize = (shortestSide / numberOfCells).truncateToDouble();
       myMargin = 90;
     }
     if (blockSize * numberOfCells + myMargin > shortestSide) {
-      blockSize =
-          ((shortestSide - myMargin) / numberOfCells).truncateToDouble();
+      blockSize = ((shortestSide - myMargin) *
+              GlobalModel.instance.koef /
+              numberOfCells)
+          .truncateToDouble();
     }
   }
 }
@@ -77,14 +85,23 @@ class Cell extends StatefulWidget {
 }
 
 class _CellState extends State<Cell> {
+  void changeChipColor() {
+    setState(() {
+      GlobalModel.instance.changeChipColor(widget.index1, widget.index2);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: colorConverter[GlobalModel.instance.playArray2[widget.index1]
-          [widget.index2]],
-      width: blockSize,
-      height: blockSize,
-      //child: Text('O'),
+    return GestureDetector(
+      onTap: changeChipColor,
+      child: Container(
+        color: colorConverter[GlobalModel.instance.playArray2[widget.index1]
+            [widget.index2]],
+        width: blockSize,
+        height: blockSize,
+        //child: Text('O'),
+      ),
     );
   }
 }
