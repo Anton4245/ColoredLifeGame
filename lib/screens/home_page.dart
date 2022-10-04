@@ -210,7 +210,7 @@ class _GameSettingsState extends State<GameSettings> {
                 GlobalModel.instance.torus = newValue;
               });
             }),
-        const Text('Merge cells'),
+        const Text('Merge colors'),
         Switch(
             value: GlobalModel.instance.merge,
             onChanged: (newValue) {
