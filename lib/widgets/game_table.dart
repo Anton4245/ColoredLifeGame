@@ -14,11 +14,10 @@ class GameTable extends StatefulWidget {
 }
 
 class _GameTableState extends State<GameTable> {
-  BorderSide borderSide = BorderSide(color: Colors.blue, width: 1);
-  //Table t=Table();
-
   @override
   Widget build(BuildContext context) {
+    BorderSide borderSide =
+        BorderSide(color: Theme.of(context).colorScheme.primary, width: 1);
     initScreenSize(context);
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -96,8 +95,7 @@ class _CellState extends State<Cell> {
     return GestureDetector(
       onTap: changeChipColor,
       child: Container(
-        color: colorConverter[GlobalModel.instance.playArray2[widget.index1]
-            [widget.index2]],
+        color: GlobalModel.instance.playArray2[widget.index1][widget.index2],
         width: blockSize,
         height: blockSize,
         //child: Text('O'),

@@ -14,7 +14,10 @@ class MyHomePage extends StatefulWidget {
 class MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   Widget? gameTable;
-  colorsOfChips choosedColor = colorsOfChips.none;
+
+  late MediaQueryData media;
+  bool aLotOfFreeSpace = false;
+  bool horizontal = false;
 
   void _gameStart() {
     GlobalModel.instance.gameStart(widget.key);
@@ -39,34 +42,33 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void changeColor(colorsOfChips color) {
+    setState(() {
+      GlobalModel.instance.choosedColor = color;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var standartConstraints = BoxConstraints(minWidth: 50, maxWidth: 70);
+    media = MediaQuery.of(context);
+    aLotOfFreeSpace = areMuchSpace();
+    horizontal = media.size.width > media.size.height;
+    var theme = Theme.of(context);
+
     // ignore: prefer_const_constructors
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text(widget.title),
-      //   actions: [
-      //     IconButton(
-      //         onPressed: changeKoef,
-      //         icon: Icon(GlobalModel.instance.koef == 1
-      //             ? Icons.fit_screen
-      //             : Icons.backspace)),
-      //     IconButton(
-      //         onPressed: _gameStart,
-      //         icon: GlobalModel.instance.gameStatus == GameStatus.gameStarted
-      //             ? const Icon(Icons.play_arrow)
-      //             : const Icon(Icons.start)),
-      //     IconButton(
-      //         onPressed: _gameCleanField,
-      //         icon: const Icon(Icons.cleaning_services))
-      //   ],
-      // ),
+      appBar: aLotOfFreeSpace
+          ? AppBar(
+              toolbarHeight: 40,
+              title: Text(widget.title),
+            )
+          : null,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
-            height: 40,
+          SizedBox(
+            height: horizontal ? 30 : 40,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -74,12 +76,17 @@ class MyHomePageState extends State<MyHomePage> {
             children: [
               ...colorsOfChips.values
                   .where((color) => color != colorsOfChips.none)
-                  .map((e) => RawMaterialButton(
+                  .map((color) => RawMaterialButton(
+                        fillColor: GlobalModel.instance.choosedColor == color
+                            ? theme.colorScheme.primary
+                            : null,
                         constraints: standartConstraints,
-                        onPressed: () {},
+                        onPressed: () {
+                          changeColor(color);
+                        },
                         child: Icon(
                           Icons.circle,
-                          color: colorConverter[e],
+                          color: colorConverter[color],
                         ),
                         shape: CircleBorder(),
                       )),
@@ -94,6 +101,7 @@ class MyHomePageState extends State<MyHomePage> {
               IconButton(
                   color: Theme.of(context).colorScheme.primary,
                   constraints: standartConstraints,
+                  padding: EdgeInsets.zero,
                   onPressed: _gameStart,
                   icon:
                       GlobalModel.instance.gameStatus == GameStatus.gameStarted
@@ -102,22 +110,30 @@ class MyHomePageState extends State<MyHomePage> {
               IconButton(
                   color: Theme.of(context).colorScheme.primary,
                   constraints: standartConstraints,
+                  padding: EdgeInsets.zero,
                   onPressed: _gameCleanField,
                   icon: const Icon(Icons.cleaning_services))
             ],
           ),
           //Expanded(child: GameTable()),
-          adaptiveHeight(GameTable()),
+          adaptiveHeightOfGameTable(GameTable()),
         ],
       ),
       floatingActionButton: FABWithCondition(),
     );
   }
 
-  Widget adaptiveHeight(Widget w) {
-    var media = MediaQuery.of(context);
+  bool areMuchSpace() {
     if ((media.size.height - media.size.width >= 100) &&
         GlobalModel.instance.koef < 1.05) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Widget adaptiveHeightOfGameTable(Widget w) {
+    if (aLotOfFreeSpace) {
       return w;
     } else {
       return Expanded(child: w);

@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:life_colored/consts.dart';
+import 'package:flutter/material.dart';
 
 enum GameStatus { initialState, gameStarted, gameFinished }
 
@@ -9,10 +9,10 @@ class GlobalModel {
   GlobalModel._privateConstructor();
   static final GlobalModel instance = GlobalModel._privateConstructor();
 
-  final playArray1 = List<List<colorsOfChips>>.generate(numberOfCells,
-      (index) => List<colorsOfChips>.filled(numberOfCells, colorsOfChips.none));
-  final playArray2 = List<List<colorsOfChips>>.generate(numberOfCells,
-      (index) => List<colorsOfChips>.filled(numberOfCells, colorsOfChips.none));
+  final playArray1 = List<List<Color>>.generate(numberOfCells,
+      (index) => List<Color>.filled(numberOfCells, Colors.white));
+  final playArray2 = List<List<Color>>.generate(numberOfCells,
+      (index) => List<Color>.filled(numberOfCells, Colors.white));
 
   //TODO check the possibility to use ObjectKey later sdfsdfs
   // final keysArray = List<List<ObjectKey>>.generate(
@@ -30,6 +30,7 @@ class GlobalModel {
   bool gamePaused = true;
   Key? mainPageKey;
   double koef = 1.0;
+  colorsOfChips choosedColor = colorsOfChips.red;
 
   void cancelTimer() {
     if (timer != null && (timer?.isActive ?? false)) timer?.cancel();
@@ -38,8 +39,8 @@ class GlobalModel {
   void cleanArrays() {
     for (int i = 0; i < numberOfCells; i++) {
       for (int j = 0; j < numberOfCells; j++) {
-        playArray1[i][j] = colorsOfChips.none;
-        playArray2[i][j] = colorsOfChips.none;
+        playArray1[i][j] = Colors.white;
+        playArray2[i][j] = Colors.white;
       }
     }
   }
@@ -78,30 +79,30 @@ class GlobalModel {
   }
 
   void initInitialSet() {
-    playArray2[13][13] = colorsOfChips.red;
-    playArray2[13][14] = colorsOfChips.red;
-    playArray2[13][15] = colorsOfChips.red;
-    playArray2[14][13] = colorsOfChips.red;
-    playArray2[14][14] = colorsOfChips.red;
-    playArray2[14][15] = colorsOfChips.red;
-    playArray2[15][13] = colorsOfChips.red;
-    playArray2[15][14] = colorsOfChips.red;
-    playArray2[15][15] = colorsOfChips.red;
-    playArray2[15][16] = colorsOfChips.red;
+    playArray2[13][13] = Colors.red;
+    playArray2[13][14] = Colors.red;
+    playArray2[13][15] = Colors.red;
+    playArray2[14][13] = Colors.red;
+    playArray2[14][14] = Colors.red;
+    playArray2[14][15] = Colors.red;
+    playArray2[15][13] = Colors.red;
+    playArray2[15][14] = Colors.red;
+    playArray2[15][15] = Colors.red;
+    playArray2[15][16] = Colors.red;
   }
 
   void step() {
     for (int i = 0; i < numberOfCells; i++) {
       for (int j = 0; j < numberOfCells; j++) {
         int _numberOfNeighbors = numberOfNeighbors(i, j);
-        if (playArray1[i][j] == colorsOfChips.none && _numberOfNeighbors == 3) {
+        if (playArray1[i][j] == Colors.white && _numberOfNeighbors == 3) {
           GlobalModel.instance.keysArray[i][j].currentState!.setState(() {
-            playArray2[i][j] = colorsOfChips.red;
+            playArray2[i][j] = calculateColor(i, j);
           });
-        } else if (playArray1[i][j] != colorsOfChips.none &&
+        } else if (playArray1[i][j] != Colors.white &&
             (_numberOfNeighbors != 2 && _numberOfNeighbors != 3)) {
           GlobalModel.instance.keysArray[i][j].currentState!.setState(() {
-            playArray2[i][j] = colorsOfChips.none;
+            playArray2[i][j] = Colors.white;
           });
         }
       }
@@ -138,7 +139,7 @@ class GlobalModel {
 
   int _checkCell(i, j) {
     if (i >= 0 && i < numberOfCells && j >= 0 && j < numberOfCells) {
-      return playArray1[i][j] == colorsOfChips.none ? 0 : 1;
+      return playArray1[i][j] == Colors.white ? 0 : 1;
     } else {
       return 0;
     }
@@ -146,10 +147,38 @@ class GlobalModel {
 
   void changeChipColor(index1, index2) {
     GlobalModel.instance.playArray2[index1][index2] =
-        GlobalModel.instance.playArray2[index1][index2] == colorsOfChips.none
-            ? colorsOfChips.red
-            : colorsOfChips.none;
+        GlobalModel.instance.playArray2[index1][index2] == Colors.white
+            ? colorConverter[choosedColor]!
+            : Colors.white;
     GlobalModel.instance.playArray1[index1][index2] =
-        GlobalModel.instance.playArray1[index1][index2];
+        GlobalModel.instance.playArray2[index1][index2];
+  }
+
+  Color calculateColor(int index1, int index2) {
+    int red = 0;
+    int green = 0;
+    int blue = 0;
+    int qua = 0;
+    for (int i = -1; i <= 1; i++) {
+      for (int j = -1; j <= 1; j++) {
+        if (i == 0 && j == 0) {
+          continue;
+        }
+
+        if (_checkCell(index1 + i, index2 + j) == 1) {
+          red += playArray1[index1 + i][index2 + j].red;
+          green += playArray1[index1 + i][index2 + j].green;
+          blue += playArray1[index1 + i][index2 + j].blue;
+          qua += 1;
+        }
+      }
+    }
+
+    if (qua > 0) {
+      return Color.fromARGB(255, (red / qua).round(), (green / qua).round(),
+          (blue / qua).round());
+    } else {
+      return Colors.black; //mistake
+    }
   }
 }
