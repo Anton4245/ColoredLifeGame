@@ -70,6 +70,12 @@ class MyHomePageState extends State<MyHomePage> {
           SizedBox(
             height: horizontal ? 30 : 40,
           ),
+          ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: GameSettings(),
+            )
+          ].where((element) => aLotOfFreeSpace == true),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
@@ -177,5 +183,42 @@ class MyHomePageState extends State<MyHomePage> {
           onPressed: () {},
         );
     }
+  }
+}
+
+class GameSettings extends StatefulWidget {
+  const GameSettings({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<GameSettings> createState() => _GameSettingsState();
+}
+
+class _GameSettingsState extends State<GameSettings> {
+  @override
+  Widget build(BuildContext context) {
+    return Flex(
+      direction: Axis.horizontal,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text('Torus surface'),
+        Switch(
+            value: GlobalModel.instance.torus,
+            onChanged: (newValue) {
+              setState(() {
+                GlobalModel.instance.torus = newValue;
+              });
+            }),
+        const Text('Merge cells'),
+        Switch(
+            value: GlobalModel.instance.merge,
+            onChanged: (newValue) {
+              setState(() {
+                GlobalModel.instance.merge = newValue;
+              });
+            })
+      ],
+    );
   }
 }

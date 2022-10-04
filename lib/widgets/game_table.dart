@@ -95,7 +95,7 @@ class _CellState extends State<Cell> {
     return GestureDetector(
       onTap: changeChipColor,
       child: Container(
-        color: GlobalModel.instance.playArray2[widget.index1][widget.index2],
+        color: GlobalModel.instance.playArray4[widget.index1][widget.index2],
         width: blockSize,
         height: blockSize,
         //child: Text('O'),
