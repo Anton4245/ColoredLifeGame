@@ -1,16 +1,23 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:life_colored/consts.dart';
+import 'package:flutter/material.dart';
+
+enum GameStatus { initialState, gameStarted, gameFinished }
 
 class GlobalModel {
   //Singleton constractor
   GlobalModel._privateConstructor();
   static final GlobalModel instance = GlobalModel._privateConstructor();
 
-  final playArray1 = List<List<colorsOfChips>>.generate(numberOfCells,
-      (index) => List<colorsOfChips>.filled(numberOfCells, colorsOfChips.none));
-  final playArray2 = List<List<colorsOfChips>>.generate(numberOfCells,
-      (index) => List<colorsOfChips>.filled(numberOfCells, colorsOfChips.none));
+  final playArray1 = List<List<bool>>.generate(
+      numberOfCells, (index) => List<bool>.filled(numberOfCells, false));
+  final playArray2 = List<List<bool>>.generate(
+      numberOfCells, (index) => List<bool>.filled(numberOfCells, false));
+
+  final playArray3 = List<List<Color>>.generate(numberOfCells,
+      (index) => List<Color>.filled(numberOfCells, Colors.white));
+  final playArray4 = List<List<Color>>.generate(numberOfCells,
+      (index) => List<Color>.filled(numberOfCells, Colors.white));
 
   //TODO check the possibility to use ObjectKey later sdfsdfs
   // final keysArray = List<List<ObjectKey>>.generate(
@@ -24,45 +31,35 @@ class GlobalModel {
           numberOfCells, (index2) => GlobalKey<State>()));
 
   Timer? timer;
-  bool gameStarted = false;
+  GameStatus gameStatus = GameStatus.initialState;
   bool gamePaused = true;
-  bool gameFinished = false;
   Key? mainPageKey;
+  double koef = 1.0;
+  colorsOfChips choosedColor = colorsOfChips.red;
+  bool torus = torusSurfaceInitialSetting; //surface of the torus
+  bool merge = mergeNotKillInitialSetting; // another value - merge cells
 
   void cancelTimer() {
     if (timer != null && (timer?.isActive ?? false)) timer?.cancel();
   }
 
-  void gameRestart(Key? key) {
-    gameFinished = false;
-    cleanArrays();
-    gameStarted = false;
-    gamePaused = false;
-    gameStart(key);
-  }
-
   void cleanArrays() {
     for (int i = 0; i < numberOfCells; i++) {
       for (int j = 0; j < numberOfCells; j++) {
-        playArray1[i][j] = colorsOfChips.none;
-        playArray2[i][j] = colorsOfChips.none;
+        playArray1[i][j] = false;
+        playArray2[i][j] = false;
+        playArray3[i][j] = Colors.white;
+        playArray4[i][j] = Colors.white;
       }
     }
   }
 
   void gameStart(Key? key) {
     mainPageKey = key;
-    gamePaused = false;
-    if (!gameStarted) {
-      initInitialSet();
-      gameStarted = true;
-    }
-    gameResume();
-  }
-
-  void gameResume() {
+    gameStatus = GameStatus.gameStarted;
     cancelTimer();
-    timer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
+    gamePaused = false;
+    timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
       step();
     });
   }
@@ -71,61 +68,61 @@ class GlobalModel {
     gamePaused = true;
     //timer
     cancelTimer();
-    if (gameFinished) {
+  }
+
+  void finishGame() {
+    gameStop();
+    gameStatus = GameStatus.gameFinished;
+    try {
       (mainPageKey as GlobalKey<State>?)
           ?.currentState
           ?.setState(() {}); //it is not very bewtitiful, but for opimization
-
+    } catch (e) {
+      //do nothing
     }
   }
 
-  void initInitialSet() {
-    playArray2[13][13] = colorsOfChips.red;
-    playArray2[13][14] = colorsOfChips.red;
-    playArray2[13][15] = colorsOfChips.red;
-    playArray2[14][13] = colorsOfChips.red;
-    playArray2[14][14] = colorsOfChips.red;
-    playArray2[14][15] = colorsOfChips.red;
-    playArray2[15][13] = colorsOfChips.red;
-    playArray2[15][14] = colorsOfChips.red;
-    playArray2[15][15] = colorsOfChips.red;
-    playArray2[15][16] = colorsOfChips.red;
+  void gameCleanField() {
+    cleanArrays();
+    gameStatus = GameStatus.initialState;
   }
 
   void step() {
+    copyArray2ToArray1();
+    bool arraysAreEqual = true;
     for (int i = 0; i < numberOfCells; i++) {
       for (int j = 0; j < numberOfCells; j++) {
         int _numberOfNeighbors = numberOfNeighbors(i, j);
-        if (playArray1[i][j] == colorsOfChips.none && _numberOfNeighbors == 3) {
+        if (playArray1[i][j] == false && _numberOfNeighbors == 3) {
           GlobalModel.instance.keysArray[i][j].currentState!.setState(() {
-            playArray2[i][j] = colorsOfChips.red;
+            playArray2[i][j] = true;
+            playArray4[i][j] = calculateColor(i, j);
+            arraysAreEqual = false;
           });
-        } else if (playArray1[i][j] != colorsOfChips.none &&
-            (_numberOfNeighbors < 2 || _numberOfNeighbors > 3)) {
+        } else if (playArray1[i][j] == true &&
+            (_numberOfNeighbors != 2 && _numberOfNeighbors != 3)) {
           GlobalModel.instance.keysArray[i][j].currentState!.setState(() {
-            playArray2[i][j] = colorsOfChips.none;
+            playArray2[i][j] = false;
+            playArray4[i][j] = Colors.white;
+            arraysAreEqual = false;
           });
         }
       }
     }
-    bool arraysAreEqual = copyArray2ToArray1();
     if (arraysAreEqual) {
-      gameFinished = true;
-      gameStop();
+      finishGame();
     }
   }
 
-  bool copyArray2ToArray1() {
-    bool arraysAreEqual = true;
+  copyArray2ToArray1() {
     for (int i = 0; i < numberOfCells; i++) {
       for (int j = 0; j < numberOfCells; j++) {
         if (playArray1[i][j] != playArray2[i][j]) {
           playArray1[i][j] = playArray2[i][j];
-          arraysAreEqual = false;
+          playArray3[i][j] = playArray4[i][j];
         }
       }
     }
-    return arraysAreEqual;
   }
 
   int numberOfNeighbors(int i, int j) {
@@ -140,10 +137,74 @@ class GlobalModel {
   }
 
   int _checkCell(i, j) {
-    if (i >= 0 && i < numberOfCells && j >= 0 && j < numberOfCells) {
-      return playArray1[i][j] == colorsOfChips.none ? 0 : 1;
+    if (torus) {
+      int ii = (i + numberOfCells) % numberOfCells;
+      int jj = (j + numberOfCells) % numberOfCells;
+      return playArray1[ii][jj] == false ? 0 : 1;
     } else {
-      return 0;
+      if (i >= 0 && i < numberOfCells && j >= 0 && j < numberOfCells) {
+        return playArray1[i][j] == false ? 0 : 1;
+      } else {
+        return 0;
+      }
+    }
+  }
+
+  void changeChipColor(index1, index2) {
+    if (GlobalModel.instance.playArray2[index1][index2] == false) {
+      GlobalModel.instance.playArray2[index1][index2] = true;
+      GlobalModel.instance.playArray4[index1][index2] =
+          colorConverter[choosedColor]!;
+    } else {
+      GlobalModel.instance.playArray2[index1][index2] = false;
+      GlobalModel.instance.playArray4[index1][index2] = Colors.white;
+    }
+  }
+
+  Color calculateColor(int index1, int index2) {
+    int red = 0;
+    int green = 0;
+    int blue = 0;
+    int qua = 0;
+    Map<Color, int> parentsMap = {};
+    for (int i = -1; i <= 1; i++) {
+      for (int j = -1; j <= 1; j++) {
+        if (i == 0 && j == 0) {
+          continue;
+        }
+
+        int ii;
+        int jj;
+        if (torus) {
+          ii = (index1 + i + numberOfCells) % numberOfCells;
+          jj = (index2 + j) % numberOfCells;
+        } else {
+          ii = index1 + i;
+          jj = index2 + j;
+        }
+
+        if (_checkCell(ii, jj) == 1) {
+          red += playArray3[ii][jj].red;
+          green += playArray3[ii][jj].green;
+          blue += playArray3[ii][jj].blue;
+          qua += 1;
+          parentsMap.update(playArray3[ii][jj], (value) => 1 + value,
+              ifAbsent: () => 1);
+        }
+      }
+    }
+    var list = parentsMap.entries.toList();
+    list.sort((a, b) => -a.value.compareTo(b.value));
+
+    if (qua > 0) {
+      if (merge) {
+        return Color.fromARGB(255, (red / qua).round(), (green / qua).round(),
+            (blue / qua).round());
+      } else {
+        return list[0].key;
+      }
+    } else {
+      return Colors.black; //mistake
     }
   }
 }

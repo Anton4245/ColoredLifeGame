@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 const int numberOfCells = 30;
+const double increaseSizeKoef = 1.8;
+bool mergeNotKillInitialSetting = true;
+bool torusSurfaceInitialSetting = true;
 
 enum colorsOfChips { none, red, yellow }
 
