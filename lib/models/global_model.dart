@@ -36,8 +36,8 @@ class GlobalModel {
   Key? mainPageKey;
   double koef = 1.0;
   colorsOfChips choosedColor = colorsOfChips.red;
-  bool torus = torusSurface; //surface of the torus
-  bool merge = mergeNotKill; // another value - merge cells
+  bool torus = torusSurfaceInitialSetting; //surface of the torus
+  bool merge = mergeNotKillInitialSetting; // another value - merge cells
 
   void cancelTimer() {
     if (timer != null && (timer?.isActive ?? false)) timer?.cancel();
@@ -137,10 +137,16 @@ class GlobalModel {
   }
 
   int _checkCell(i, j) {
-    if (i >= 0 && i < numberOfCells && j >= 0 && j < numberOfCells) {
-      return playArray1[i][j] == false ? 0 : 1;
+    if (torus) {
+      int ii = (i + numberOfCells) % numberOfCells;
+      int jj = (j + numberOfCells) % numberOfCells;
+      return playArray1[ii][jj] == false ? 0 : 1;
     } else {
-      return 0;
+      if (i >= 0 && i < numberOfCells && j >= 0 && j < numberOfCells) {
+        return playArray1[i][j] == false ? 0 : 1;
+      } else {
+        return 0;
+      }
     }
   }
 
@@ -160,24 +166,43 @@ class GlobalModel {
     int green = 0;
     int blue = 0;
     int qua = 0;
+    Map<Color, int> parentsMap = {};
     for (int i = -1; i <= 1; i++) {
       for (int j = -1; j <= 1; j++) {
         if (i == 0 && j == 0) {
           continue;
         }
 
-        if (_checkCell(index1 + i, index2 + j) == 1) {
-          red += playArray3[index1 + i][index2 + j].red;
-          green += playArray3[index1 + i][index2 + j].green;
-          blue += playArray3[index1 + i][index2 + j].blue;
+        int ii;
+        int jj;
+        if (torus) {
+          ii = (index1 + i + numberOfCells) % numberOfCells;
+          jj = (index2 + j) % numberOfCells;
+        } else {
+          ii = index1 + i;
+          jj = index2 + j;
+        }
+
+        if (_checkCell(ii, jj) == 1) {
+          red += playArray3[ii][jj].red;
+          green += playArray3[ii][jj].green;
+          blue += playArray3[ii][jj].blue;
           qua += 1;
+          parentsMap.update(playArray3[ii][jj], (value) => 1 + value,
+              ifAbsent: () => 1);
         }
       }
     }
+    var list = parentsMap.entries.toList();
+    list.sort((a, b) => -a.value.compareTo(b.value));
 
     if (qua > 0) {
-      return Color.fromARGB(255, (red / qua).round(), (green / qua).round(),
-          (blue / qua).round());
+      if (merge) {
+        return Color.fromARGB(255, (red / qua).round(), (green / qua).round(),
+            (blue / qua).round());
+      } else {
+        return list[0].key;
+      }
     } else {
       return Colors.black; //mistake
     }
