@@ -26,6 +26,7 @@ class GlobalModel {
           numberOfCells, (index2) => GlobalKey<State>()));
 
   Timer? timer;
+  int timeDuration = 1000;
   int stepNumber = 0;
   Map<int, int> archive = {};
   GameStatus gameStatus = GameStatus.initialState;
@@ -60,7 +61,7 @@ class GlobalModel {
     }
     cancelTimer();
     gamePaused = false;
-    timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    timer = Timer.periodic(Duration(milliseconds: timeDuration), (timer) {
       step();
     });
   }
