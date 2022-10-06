@@ -108,11 +108,11 @@ class MyHomePageState extends State<MyHomePage> {
                   color: Theme.of(context).colorScheme.primary,
                   constraints: standartConstraints,
                   padding: EdgeInsets.zero,
-                  onPressed: _gameStart,
-                  icon:
-                      GlobalModel.instance.gameStatus == GameStatus.gameStarted
-                          ? const Icon(Icons.play_arrow)
-                          : const Icon(Icons.start)),
+                  onPressed:
+                      GlobalModel.instance.gamePaused ? _gameStart : _gamePause,
+                  icon: GlobalModel.instance.gamePaused
+                      ? const Icon(Icons.play_arrow)
+                      : const Icon(Icons.stop)),
               IconButton(
                   color: Theme.of(context).colorScheme.primary,
                   constraints: standartConstraints,
