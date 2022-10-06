@@ -243,26 +243,67 @@ class GameSettings extends StatefulWidget {
 class _GameSettingsState extends State<GameSettings> {
   @override
   Widget build(BuildContext context) {
-    return Flex(
-      direction: widget.direction,
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text('Torus surface'),
-        Switch(
-            value: GlobalModel.instance.torus,
-            onChanged: (newValue) {
-              setState(() {
-                GlobalModel.instance.torus = newValue;
-              });
-            }),
-        const Text('Merge colors'),
-        Switch(
-            value: GlobalModel.instance.merge,
-            onChanged: (newValue) {
-              setState(() {
-                GlobalModel.instance.merge = newValue;
-              });
-            })
+        Flex(
+          direction: widget.direction,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                const Text('Torus surface'),
+                Switch(
+                    value: GlobalModel.instance.torus,
+                    onChanged: (newValue) {
+                      setState(() {
+                        GlobalModel.instance.torus = newValue;
+                      });
+                    }),
+              ],
+            ),
+            Row(
+              children: [
+                const Text('Merge colors'),
+                Switch(
+                    value: GlobalModel.instance.merge,
+                    onChanged: (newValue) {
+                      setState(() {
+                        GlobalModel.instance.merge = newValue;
+                      });
+                    }),
+              ],
+            )
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Step/sec'),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                  minWidth: 100,
+                  maxWidth: widget.direction == Axis.horizontal ? 250 : 150),
+              child: Slider(
+                  value: (1000 / GlobalModel.instance.timeDuration)
+                      .roundToDouble(),
+                  min: 1,
+                  max: 20,
+                  divisions: 20,
+                  label: (1000 / GlobalModel.instance.timeDuration)
+                      .round()
+                      .toString(),
+                  onChanged: (double value) {
+                    setState(() {
+                      GlobalModel.instance.timeDuration =
+                          (1000 / value).round();
+                    });
+                  }),
+            ),
+          ],
+        )
       ],
     );
   }
