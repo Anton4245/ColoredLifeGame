@@ -12,7 +12,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   Widget? gameTable;
 
   late MediaQueryData media;
@@ -50,7 +49,7 @@ class MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var standartConstraints = BoxConstraints(minWidth: 50, maxWidth: 70);
+    var standartConstraints = const BoxConstraints(minWidth: 50, maxWidth: 70);
     media = MediaQuery.of(context);
     aLotOfFreeSpace = areMuchSpace();
     horizontal = media.size.width > media.size.height;
@@ -79,54 +78,58 @@ class MyHomePageState extends State<MyHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
-            children: [
-              ...colorsOfChips.values
-                  .where((color) => color != colorsOfChips.none)
-                  .map((color) => RawMaterialButton(
-                        fillColor: GlobalModel.instance.choosedColor == color
-                            ? theme.colorScheme.primary
-                            : null,
-                        constraints: standartConstraints,
-                        onPressed: () {
-                          changeColor(color);
-                        },
-                        child: Icon(
-                          Icons.circle,
-                          color: colorConverter[color],
-                        ),
-                        shape: CircleBorder(),
-                      )),
-              IconButton(
-                  color: Theme.of(context).colorScheme.primary,
-                  constraints: standartConstraints,
-                  padding: EdgeInsets.zero,
-                  onPressed: changeKoef,
-                  icon: Icon(GlobalModel.instance.koef == 1
-                      ? Icons.fit_screen
-                      : Icons.backspace)),
-              IconButton(
-                  color: Theme.of(context).colorScheme.primary,
-                  constraints: standartConstraints,
-                  padding: EdgeInsets.zero,
-                  onPressed:
-                      GlobalModel.instance.gamePaused ? _gameStart : _gamePause,
-                  icon: GlobalModel.instance.gamePaused
-                      ? const Icon(Icons.play_arrow)
-                      : const Icon(Icons.stop)),
-              IconButton(
-                  color: Theme.of(context).colorScheme.primary,
-                  constraints: standartConstraints,
-                  padding: EdgeInsets.zero,
-                  onPressed: _gameCleanField,
-                  icon: const Icon(Icons.cleaning_services))
-            ],
+            children: gameTableActions(theme, standartConstraints, context),
           ),
-          //Expanded(child: GameTable()),
-          adaptiveHeightOfGameTable(GameTable()),
+          // ignore: prefer_const_constructors
+          adaptiveHeightOfGameTable(GameTable()), //we rebuilt all the trees
         ],
       ),
       floatingActionButton: FABWithCondition(),
     );
+  }
+
+  List<Widget> gameTableActions(ThemeData theme,
+      BoxConstraints standartConstraints, BuildContext context) {
+    return [
+      ...colorsOfChips.values
+          .where((color) => color != colorsOfChips.none)
+          .map((color) => RawMaterialButton(
+                fillColor: GlobalModel.instance.choosedColor == color
+                    ? theme.colorScheme.primary
+                    : null,
+                constraints: standartConstraints,
+                onPressed: () {
+                  changeColor(color);
+                },
+                child: Icon(
+                  Icons.circle,
+                  color: colorConverter[color],
+                ),
+                shape: const CircleBorder(),
+              )),
+      IconButton(
+          color: Theme.of(context).colorScheme.primary,
+          constraints: standartConstraints,
+          padding: EdgeInsets.zero,
+          onPressed: changeKoef,
+          icon: Icon(GlobalModel.instance.koef == 1
+              ? Icons.fit_screen
+              : Icons.backspace)),
+      IconButton(
+          color: Theme.of(context).colorScheme.primary,
+          constraints: standartConstraints,
+          padding: EdgeInsets.zero,
+          onPressed: GlobalModel.instance.gamePaused ? _gameStart : _gamePause,
+          icon: GlobalModel.instance.gamePaused
+              ? const Icon(Icons.play_arrow)
+              : const Icon(Icons.stop)),
+      IconButton(
+          color: Theme.of(context).colorScheme.primary,
+          constraints: standartConstraints,
+          padding: EdgeInsets.zero,
+          onPressed: _gameCleanField,
+          icon: const Icon(Icons.cleaning_services))
+    ];
   }
 
   bool areMuchSpace() {
@@ -146,6 +149,7 @@ class MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // ignore: non_constant_identifier_names
   FloatingActionButton FABWithCondition() {
     if (!GlobalModel.instance.gamePaused) {
       return FloatingActionButton(
@@ -154,8 +158,6 @@ class MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.stop),
       );
     }
-
-    //game not paused initialState -> gameStarted - gameFinished
 
     switch (GlobalModel.instance.gameStatus) {
       case GameStatus.gameFinished:
