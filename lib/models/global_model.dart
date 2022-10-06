@@ -20,12 +20,6 @@ class GlobalModel {
   final playArray4 = List<List<Color>>.generate(numberOfCells,
       (index) => List<Color>.filled(numberOfCells, Colors.white));
 
-  //TODO check the possibility to use ObjectKey later sdfsdfs
-  // final keysArray = List<List<ObjectKey>>.generate(
-  //     numberOfCells,
-  //     (index1) => List<ObjectKey>.generate(
-  //         numberOfCells, (index2) => ObjectKey((index1 + 1) * numberOfCells + index2)));
-
   final keysArray = List<List<GlobalKey<State>>>.generate(
       numberOfCells,
       (index1) => List<GlobalKey<State>>.generate(
@@ -40,7 +34,8 @@ class GlobalModel {
   double koef = 1.0;
   colorsOfChips choosedColor = colorsOfChips.red;
   bool torus = torusSurfaceInitialSetting; //surface of the torus
-  bool merge = mergeNotKillInitialSetting; // another value - merge cells
+  bool merge =
+      mergeNotKillInitialSetting; // another vat - new cell creates of main colors of "parent cells"
 
   void cancelTimer() {
     if (timer != null && (timer?.isActive ?? false)) timer?.cancel();
@@ -82,9 +77,8 @@ class GlobalModel {
     gameStatus = GameStatus.gameFinished;
 
     try {
-      (mainPageKey as GlobalKey<State>?)
-          ?.currentState
-          ?.setState(() {}); //it is not very bewtitiful, but for opimization
+      (mainPageKey as GlobalKey<State>?)?.currentState?.setState(
+          () {}); //it is not very bewtitiful, but - for the opimization
     } catch (e) {
       //do nothing
     }
@@ -178,6 +172,7 @@ class GlobalModel {
     int qua = 0;
     Map<Color, int> parentsMap = {};
     for (int i = -1; i <= 1; i++) {
+      //anpther var of algoritm
       for (int j = -1; j <= 1; j++) {
         if (i == 0 && j == 0) {
           continue;
