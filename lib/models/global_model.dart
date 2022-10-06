@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:life_colored/consts.dart';
 import 'package:flutter/material.dart';
+import 'package:life_colored/models/Finish.dart';
 
 enum GameStatus { initialState, gameStarted, gameFinished }
 
@@ -31,6 +32,8 @@ class GlobalModel {
           numberOfCells, (index2) => GlobalKey<State>()));
 
   Timer? timer;
+  int stepNumber = 0;
+  Map<int, int> archive = {};
   GameStatus gameStatus = GameStatus.initialState;
   bool gamePaused = true;
   Key? mainPageKey;
@@ -56,10 +59,13 @@ class GlobalModel {
 
   void gameStart(Key? key) {
     mainPageKey = key;
-    gameStatus = GameStatus.gameStarted;
+    if (gameStatus != GameStatus.gameStarted) {
+      gameStatus = GameStatus.gameStarted;
+      stepNumber = 1;
+    }
     cancelTimer();
     gamePaused = false;
-    timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
+    timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       step();
     });
   }
@@ -72,7 +78,9 @@ class GlobalModel {
 
   void finishGame() {
     gameStop();
+    forceFinish();
     gameStatus = GameStatus.gameFinished;
+
     try {
       (mainPageKey as GlobalKey<State>?)
           ?.currentState
@@ -110,6 +118,8 @@ class GlobalModel {
       }
     }
     if (arraysAreEqual) {
+      finishGame();
+    } else if (addResultToArchive(playArray2)) {
       finishGame();
     }
   }
