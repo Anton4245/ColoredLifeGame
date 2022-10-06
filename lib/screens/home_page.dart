@@ -49,13 +49,14 @@ class MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var standartConstraints = const BoxConstraints(minWidth: 50, maxWidth: 70);
+    const horizontalConstraints = BoxConstraints(minWidth: 50, maxWidth: 70);
+    const varticalConstraints = BoxConstraints(minHeight: 50, maxHeight: 70);
+
     media = MediaQuery.of(context);
     aLotOfFreeSpace = areMuchSpace();
     horizontal = media.size.width > media.size.height;
     var theme = Theme.of(context);
 
-    // ignore: prefer_const_constructors
     return Scaffold(
       appBar: aLotOfFreeSpace
           ? AppBar(
@@ -63,27 +64,67 @@ class MyHomePageState extends State<MyHomePage> {
               title: Text(widget.title),
             )
           : null,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: horizontal ? 30 : 40,
-          ),
-          ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: GameSettings(),
+      body: (!horizontal || GlobalModel.instance.koef > 1.05)
+          ? Column(
+              //Vertical or Expanded
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: horizontal ? 30 : 40,
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children:
+                      gameTableActions(theme, horizontalConstraints, context),
+                ),
+                aLotOfFreeSpace
+                    ?
+                    // ignore: prefer_const_constructors
+                    GameTable()
+                    // ignore: prefer_const_constructors
+                    : Expanded(child: GameTable()), //we rebuilt all the tree
+                !aLotOfFreeSpace
+                    ? const SizedBox.shrink()
+                    : const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: GameSettings(direction: Axis.horizontal),
+                      ) as Widget,
+              ],
             )
-          ].where((element) => aLotOfFreeSpace == true),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: gameTableActions(theme, standartConstraints, context),
-          ),
-          // ignore: prefer_const_constructors
-          adaptiveHeightOfGameTable(GameTable()), //we rebuilt all the trees
-        ],
-      ),
+          : Column(
+              //Horizontal and Game not expanded - Settings and Actions on left and right sides
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: horizontal ? 30 : 40,
+                ),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // ignore: prefer_const_constructors
+                      Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          // ignore: prefer_const_constructors
+                          child: GameSettings(direction: Axis.vertical)),
+                      GlobalModel.instance.koef < 1.05
+                          // ignore: prefer_const_constructors
+                          ? GameTable()
+                          // ignore: prefer_const_constructors
+                          : Expanded(child: GameTable()),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: gameTableActions(
+                            theme, varticalConstraints, context),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
       floatingActionButton: FABWithCondition(),
     );
   }
@@ -189,8 +230,10 @@ class MyHomePageState extends State<MyHomePage> {
 }
 
 class GameSettings extends StatefulWidget {
+  final Axis direction;
   const GameSettings({
     Key? key,
+    required this.direction,
   }) : super(key: key);
 
   @override
@@ -201,7 +244,7 @@ class _GameSettingsState extends State<GameSettings> {
   @override
   Widget build(BuildContext context) {
     return Flex(
-      direction: Axis.horizontal,
+      direction: widget.direction,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Text('Torus surface'),
